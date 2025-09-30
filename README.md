@@ -205,7 +205,7 @@ screenshots/
 
 1. **Navigate to Repository**:
    ```
-   https://github.com/biswasbn99/E-Commerce-project-Using-Python-Django-Framework
+   https://github.com/bnbiswas99/E-Commerce-project-Using-Python-Django-Framework
    ```
 
 2. **Create Screenshots Folder**:
@@ -432,7 +432,7 @@ Before running this project, make sure you have:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/biswasbn99/E-Commerce-project-Using-Python-Django-Framework.git
+git clone https://github.com/bnbiswas99/E-Commerce-project-Using-Python-Django-Framework.git
 cd E-Commerce-project-Using-Python-Django-Framework
 ```
 
@@ -620,9 +620,9 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ## 📞 Contact
 
-**Developer**: biswasbn99  
-**GitHub**: [biswasbn99](https://github.com/biswasbn99)  
-**Repository**: [E-Commerce-project-Using-Python-Django-Framework](https://github.com/biswasbn99/E-Commerce-project-Using-Python-Django-Framework)
+**Developer**: bnbiswas99  
+**GitHub**: [bnbiswas99](https://github.com/bnbiswas99)  
+**Repository**: [E-Commerce-project-Using-Python-Django-Framework](https://github.com/bnbiswas99/E-Commerce-project-Using-Python-Django-Framework)
 
 ## 🙏 Acknowledgments
 
@@ -694,8 +694,8 @@ git add .gitattributes
 Track your README engagement:
 ```markdown
 <!-- Add tracking pixels if needed -->
-![Visitors](https://visitor-badge.glitch.me/badge?page_id=biswasbn99.E-Commerce-project)
-![GitHub stars](https://img.shields.io/github/stars/biswasbn99/E-Commerce-project-Using-Python-Django-Framework)
+![Visitors](https://visitor-badge.glitch.me/badge?page_id=bnbiswas99.E-Commerce-project)
+![GitHub stars](https://img.shields.io/github/stars/bnbiswas99/E-Commerce-project-Using-Python-Django-Framework)
 ```
 
 ### 🚀 Performance Tips
