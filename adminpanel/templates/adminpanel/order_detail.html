@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order #{{ order.id }} - Admin Panel</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; }
+        .header { background: #2563eb; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 1.5rem; }
+        .nav-links a { color: white; text-decoration: none; margin-left: 1rem; padding: 0.5rem 1rem; border-radius: 6px; }
+        .nav-links a:hover { background: rgba(255,255,255,0.1); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .back-link { display: inline-block; margin-bottom: 2rem; color: #2563eb; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+        .order-header { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+        .order-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
+        .info-card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .info-card h3 { margin-bottom: 1rem; color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; }
+        .info-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #f3f4f6; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { font-weight: 600; color: #6b7280; }
+        .info-value { color: #111827; }
+        .status-badge { padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600; text-transform: uppercase; }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-confirmed { background: #d1fae5; color: #065f46; }
+        .status-processing { background: #dbeafe; color: #1e40af; }
+        .status-shipped { background: #e0e7ff; color: #3730a3; }
+        .status-delivered { background: #d1fae5; color: #065f46; }
+        .status-cancelled { background: #fee2e2; color: #991b1b; }
+        .items-table { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+        .table { width: 100%; border-collapse: collapse; }
+        .table th, .table td { padding: 1rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        .table th { background: #f9fafb; font-weight: 600; color: #374151; }
+        .total-row { background: #f9fafb; font-weight: 600; }
+        .btn { background: #2563eb; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-block; margin-right: 1rem; }
+        .btn:hover { background: #1d4ed8; }
+        .btn-success { background: #059669; }
+        .btn-warning { background: #d97706; }
+        .btn-danger { background: #dc2626; }
+        .actions { margin-top: 2rem; }
+        .timeline { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .timeline-item { display: flex; align-items: center; padding: 1rem 0; border-bottom: 1px solid #f3f4f6; }
+        .timeline-item:last-child { border-bottom: none; }
+        .timeline-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 1rem; }
+        .timeline-icon.pending { background: #fef3c7; color: #92400e; }
+        .timeline-icon.confirmed { background: #d1fae5; color: #065f46; }
+        .product-image { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📋 Order #{{ order.id }} Details</h1>
+        <div class="nav-links">
+            <a href="{% url 'manage_orders' %}">All Orders</a>
+            <a href="{% url 'admin_dashboard' %}">Dashboard</a>
+            <a href="{% url 'admin_logout' %}">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        {% if view_source == 'reports' %}
+            <div style="margin-bottom: 2rem;">
+                <a href="{% url 'daily_orders' %}" class="back-link" style="margin-right: 1rem;">← Daily Reports</a>
+                <a href="{% url 'monthly_orders' %}" class="back-link">← Monthly Reports</a>
+            </div>
+        {% else %}
+            <a href="{% url 'manage_orders' %}" class="back-link">← Back to Order Management</a>
+        {% endif %}
+
+        <!-- Order Header -->
+        <div class="order-header">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div style="flex: 1;">
+                    <h2>Order #{{ order.id }}</h2>
+                    <div style="color: #6b7280; margin-top: 0.5rem;">
+                        <div>📅 <strong>Order Date:</strong> {{ order.created_at|date:"F d, Y" }}</div>
+                        <div>🕐 <strong>Order Time:</strong> {{ order.created_at|time:"g:i A" }} ({{ order.created_at|timesince }} ago)</div>
+                        {% if order.updated_at != order.created_at %}
+                        <div>🔄 <strong>Last Updated:</strong> {{ order.updated_at|date:"F d, Y" }} at {{ order.updated_at|time:"g:i A" }}</div>
+                        {% endif %}
+                        <div style="margin-top: 0.5rem;">
+                            <strong>👤 Customer:</strong> {{ order.user.username }} | 
+                            <strong>📞 Phone:</strong> {{ order.phone_number }} | 
+                            <strong>📦 Items:</strong> {{ order.items.count }}
+                        </div>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span>
+                    <div style="margin-top: 1rem; font-size: 1.5rem; font-weight: bold; color: #059669;">
+                        ৳{{ order.total_price }}
+                    </div>
+                    <div style="color: #6b7280; font-size: 0.875rem;">Total Amount</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Info Grid -->
+        <div class="order-grid">
+            <!-- Customer Information -->
+            <div class="info-card">
+                <h3>👤 Customer Information</h3>
+                <div class="info-row">
+                    <span class="info-label">Name:</span>
+                    <span class="info-value">{{ order.user.username }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email:</span>
+                    <span class="info-value">{{ order.user.email }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Phone:</span>
+                    <span class="info-value">{{ order.phone_number }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Customer Since:</span>
+                    <span class="info-value">{{ order.user.date_joined|date:"F d, Y" }} ({{ order.user.date_joined|timesince }} ago)</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Total Orders:</span>
+                    <span class="info-value">{{ customer_stats.total_orders }} orders</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Total Spent:</span>
+                    <span class="info-value" style="font-weight: bold; color: #059669;">৳{{ customer_stats.total_spent|floatformat:0 }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Order Status:</span>
+                    <span class="info-value">{{ customer_stats.completed_orders }} delivered, {{ customer_stats.pending_orders }} pending</span>
+                </div>
+            </div>
+
+            <!-- Delivery Information -->
+            <div class="info-card">
+                <h3>📍 Delivery Information</h3>
+                <div class="info-row">
+                    <span class="info-label">Division:</span>
+                    <span class="info-value">{{ order.division.name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">District:</span>
+                    <span class="info-value">{{ order.district.name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Thana:</span>
+                    <span class="info-value">{{ order.thana.name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Area:</span>
+                    <span class="info-value">{{ order.area }}</span>
+                </div>
+                {% if order.detailed_address %}
+                <div class="info-row">
+                    <span class="info-label">Details:</span>
+                    <span class="info-value">{{ order.detailed_address }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="order-grid">
+            <!-- Payment Information -->
+            <div class="info-card">
+                <h3>💳 Payment Information</h3>
+                <div class="info-row">
+                    <span class="info-label">Method:</span>
+                    <span class="info-value">{{ order.get_payment_method_display }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Account:</span>
+                    <span class="info-value">{{ order.payment_phone }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Status:</span>
+                    <span class="info-value">{{ order.payment_status|title }}</span>
+                </div>
+                {% if order.transaction_id %}
+                <div class="info-row">
+                    <span class="info-label">Transaction ID:</span>
+                    <span class="info-value">{{ order.transaction_id }}</span>
+                </div>
+                {% endif %}
+                <div class="info-row">
+                    <span class="info-label">Total Amount:</span>
+                    <span class="info-value" style="font-size: 1.25rem; font-weight: bold; color: #059669;">৳{{ order.total_price }}</span>
+                </div>
+            </div>
+
+            <!-- Order Timeline -->
+            <div class="timeline">
+                <h3 style="margin-bottom: 1rem; color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">📅 Order Timeline</h3>
+                <div class="timeline-item">
+                    <div class="timeline-icon confirmed">📝</div>
+                    <div>
+                        <div style="font-weight: 600;">Order Placed by Customer</div>
+                        <div style="color: #6b7280; font-size: 0.875rem;">
+                            📅 {{ order.created_at|date:"F d, Y" }}<br>
+                            🕐 {{ order.created_at|time:"g:i A" }} ({{ order.created_at|timesince }} ago)
+                        </div>
+                    </div>
+                </div>
+                {% if order.status != 'pending' %}
+                <div class="timeline-item">
+                    <div class="timeline-icon confirmed">✓</div>
+                    <div>
+                        <div style="font-weight: 600;">Order {{ order.get_status_display }}</div>
+                        <div style="color: #6b7280; font-size: 0.875rem;">Status updated</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="items-table">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Product Details</th>
+                        <th>Image</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Stock Status</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for enhanced_item in enhanced_items %}
+                    <tr>
+                        <td>
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">{{ enhanced_item.product.name }}</div>
+                            <div style="color: #6b7280; font-size: 0.875rem;">
+                                <div>🏷️ Product ID: #{{ enhanced_item.product.id }}</div>
+                                <div>📦 Current Stock: {{ enhanced_item.product.stock }} units</div>
+                                <div>✅ Status: {{ enhanced_item.availability }}</div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if enhanced_item.product.get_image_url %}
+                                <img src="{{ enhanced_item.product.get_image_url }}" alt="{{ enhanced_item.product.name }}" class="product-image">
+                            {% else %}
+                                <div style="width: 50px; height: 50px; background: #f3f4f6; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #9ca3af;">📦</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div style="font-weight: 600;">{{ enhanced_item.category.name }}</div>
+                            <div style="color: #6b7280; font-size: 0.875rem;">Category ID: #{{ enhanced_item.category.id }}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 600;">৳{{ enhanced_item.item.price }}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 600; text-align: center;">{{ enhanced_item.item.quantity }}</div>
+                        </td>
+                        <td>
+                            {% if enhanced_item.product.stock > 0 %}
+                                <span style="background: #d1fae5; color: #065f46; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">
+                                    ✅ {{ enhanced_item.stock_status }}
+                                </span>
+                            {% else %}
+                                <span style="background: #fee2e2; color: #991b1b; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">
+                                    ❌ {{ enhanced_item.stock_status }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td style="font-weight: 600; color: #059669;">৳{{ enhanced_item.subtotal }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="total-row">
+                        <td colspan="6" style="text-align: right; font-size: 1.1rem;">
+                            <strong>Total Order Amount:</strong>
+                        </td>
+                        <td style="font-size: 1.5rem; font-weight: bold; color: #059669;">৳{{ order.total_price }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Actions -->
+        {% if show_actions %}
+        <div class="actions">
+            {% if order.status == 'pending' %}
+                <form method="post" action="{% url 'confirm_order' order.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="confirmed">
+                    <button type="submit" class="btn btn-success" onclick="return confirm('Confirm this order?')">
+                        ✅ Confirm Order
+                    </button>
+                </form>
+            {% endif %}
+            
+            {% if order.status == 'confirmed' %}
+                <form method="post" action="{% url 'confirm_order' order.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="processing">
+                    <button type="submit" class="btn btn-warning">📦 Mark as Processing</button>
+                </form>
+            {% endif %}
+            
+            {% if order.status == 'processing' %}
+                <form method="post" action="{% url 'confirm_order' order.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="shipped">
+                    <button type="submit" class="btn">🚛 Mark as Shipped</button>
+                </form>
+            {% endif %}
+            
+            {% if order.status == 'shipped' %}
+                <form method="post" action="{% url 'confirm_order' order.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="delivered">
+                    <button type="submit" class="btn btn-success">📦 Mark as Delivered</button>
+                </form>
+            {% endif %}
+            
+            {% if order.status in 'pending,confirmed' %}
+                <form method="post" action="{% url 'confirm_order' order.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="cancelled">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Cancel this order?')">
+                        ❌ Cancel Order
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+        {% else %}
+        <!-- Report View Notice -->
+        <div style="background: #fef3c7; border: 2px solid #f59e0b; padding: 1.5rem; border-radius: 8px; text-align: center; color: #92400e; margin-top: 2rem;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
+            <div style="font-size: 1.25rem; font-weight: bold; margin-bottom: 0.5rem;">READ-ONLY REPORT VIEW</div>
+            <div style="font-size: 0.875rem; margin-bottom: 1rem;">
+                This order is being viewed from the Reports section. No actions (Confirm, Cancel, Delete) are available here.
+                <br>This is for viewing and analysis purposes only.
+            </div>
+            <div style="background: rgba(255,255,255,0.5); padding: 1rem; border-radius: 6px; margin: 1rem 0;">
+                <div style="font-weight: bold; margin-bottom: 0.5rem;">🚫 Actions Disabled</div>
+                <div style="font-size: 0.875rem;">Confirm Order • Cancel Order • Delete Order • Status Changes</div>
+            </div>
+            <div>
+                <a href="{% url 'manage_orders' %}" style="background: #2563eb; color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block;">
+                    📋 Go to Order Management to Take Actions
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

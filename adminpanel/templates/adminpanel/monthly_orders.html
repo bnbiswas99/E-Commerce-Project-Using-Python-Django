@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Orders - Admin Panel</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; }
+        .header { background: #2563eb; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 1.5rem; }
+        .nav-links a { color: white; text-decoration: none; margin-left: 1rem; padding: 0.5rem 1rem; border-radius: 6px; }
+        .nav-links a:hover { background: rgba(255,255,255,0.1); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .back-link { display: inline-block; margin-bottom: 2rem; color: #2563eb; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stat-value { font-size: 2rem; font-weight: bold; margin-bottom: 0.5rem; }
+        .stat-label { color: #6b7280; font-size: 0.875rem; }
+        .month-selector { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+        .month-form { display: flex; gap: 1rem; align-items: end; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { margin-bottom: 0.5rem; font-weight: 600; color: #374151; }
+        .form-group select { padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem; }
+        .btn { background: #2563eb; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; }
+        .btn:hover { background: #1d4ed8; }
+        .orders-table { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+        .table { width: 100%; border-collapse: collapse; }
+        .table th, .table td { padding: 1rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        .table th { background: #f9fafb; font-weight: 600; color: #374151; }
+        .status-badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600; text-transform: uppercase; }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-confirmed { background: #d1fae5; color: #065f46; }
+        .status-processing { background: #dbeafe; color: #1e40af; }
+        .status-shipped { background: #e0e7ff; color: #3730a3; }
+        .status-delivered { background: #d1fae5; color: #065f46; }
+        .status-cancelled { background: #fee2e2; color: #991b1b; }
+        .no-orders { text-align: center; padding: 3rem; color: #6b7280; }
+        .pagination { display: flex; justify-content: center; margin: 2rem 0; }
+        .pagination a, .pagination span { padding: 0.5rem 1rem; margin: 0 0.25rem; border: 1px solid #d1d5db; border-radius: 6px; text-decoration: none; }
+        .pagination .current { background: #2563eb; color: white; border-color: #2563eb; }
+        .chart-container { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Monthly Orders Report</h1>
+        <div class="nav-links">
+            <a href="{% url 'manage_orders' %}">All Orders</a>
+            <a href="{% url 'daily_orders' %}">Daily</a>
+            <a href="{% url 'admin_dashboard' %}">Dashboard</a>
+            <a href="{% url 'admin_logout' %}">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <a href="{% url 'manage_orders' %}" class="back-link">← Back to Orders</a>
+
+        <!-- Month Selector -->
+        <div class="month-selector">
+            <h3 style="margin-bottom: 1rem;">📅 Select Month & Year</h3>
+            <form method="get" class="month-form">
+                <div class="form-group">
+                    <label for="month">Month:</label>
+                    <select id="month" name="month">
+                        {% for value, name in months %}
+                        <option value="{{ value }}" {% if value == selected_month %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="year">Year:</label>
+                    <select id="year" name="year">
+                        {% for year in years %}
+                        <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>{{ year }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn">View Orders</button>
+            </form>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card" style="border-left: 4px solid #2563eb;">
+                <div class="stat-value" style="color: #2563eb;">{{ total_orders }}</div>
+                <div class="stat-label">Total Orders in {{ selected_month_name }} {{ selected_year }}</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #059669;">
+                <div class="stat-value" style="color: #059669;">৳{{ total_revenue|floatformat:0 }}</div>
+                <div class="stat-label">Total Revenue</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #d97706;">
+                <div class="stat-value" style="color: #d97706;">{{ pending_orders }}</div>
+                <div class="stat-label">Pending Orders</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #059669;">
+                <div class="stat-value" style="color: #059669;">{{ confirmed_orders }}</div>
+                <div class="stat-label">Confirmed Orders</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #7c3aed;">
+                <div class="stat-value" style="color: #7c3aed;">৳{{ avg_order_value|floatformat:0 }}</div>
+                <div class="stat-label">Avg Order Value</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #0891b2;">
+                <div class="stat-value" style="color: #0891b2;">{{ delivered_orders }}</div>
+                <div class="stat-label">Delivered Orders</div>
+            </div>
+        </div>
+
+        <!-- Daily Breakdown Chart -->
+        <div class="chart-container">
+            <h3 style="margin-bottom: 1rem;">📈 Daily Orders Breakdown</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 1rem;">
+                {% for day_data in daily_breakdown %}
+                <div style="text-align: center; padding: 1rem; background: #f9fafb; border-radius: 6px;">
+                    <div style="font-size: 1.5rem; font-weight: bold; color: #2563eb;">{{ day_data.orders }}</div>
+                    <div style="color: #6b7280; font-size: 0.875rem;">{{ day_data.day }}</div>
+                    <div style="color: #059669; font-size: 0.875rem; font-weight: 600;">৳{{ day_data.revenue|floatformat:0 }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="orders-table">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Items</th>
+                        <th>Amount</th>
+                        <th>Payment</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td><strong>#{{ order.id }}</strong></td>
+                        <td>
+                            <div>{{ order.user.username }}</div>
+                            <div style="color: #6b7280; font-size: 0.875rem;">{{ order.phone_number }}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 600;">{{ order.created_at|date:"M d" }}</div>
+                            <div style="color: #6b7280; font-size: 0.875rem;">{{ order.created_at|time:"g:i A" }}</div>
+                            <div style="color: #9ca3af; font-size: 0.75rem;">{{ order.created_at|timesince }} ago</div>
+                        </td>
+                        <td>{{ order.items.count }} item{{ order.items.count|pluralize }}</td>
+                        <td style="font-weight: 600; color: #059669;">৳{{ order.total_price }}</td>
+                        <td>{{ order.get_payment_method_display }}</td>
+                        <td><span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span></td>
+                        <td>
+                            <a href="{% url 'admin_order_detail' order.id %}?source=monthly" style="color: #2563eb; text-decoration: none; padding: 0.5rem 1rem; background: #f3f4f6; border-radius: 6px; font-size: 0.875rem;">
+                                👁️ View Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="no-orders">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">📦</div>
+                            <div>No orders found for {{ selected_month_name }} {{ selected_year }}</div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if orders.has_other_pages %}
+        <div class="pagination">
+            {% if orders.has_previous %}
+                <a href="?month={{ selected_month }}&year={{ selected_year }}&page={{ orders.previous_page_number }}">&laquo; Previous</a>
+            {% endif %}
+            
+            {% for num in orders.paginator.page_range %}
+                {% if orders.number == num %}
+                    <span class="current">{{ num }}</span>
+                {% else %}
+                    <a href="?month={{ selected_month }}&year={{ selected_year }}&page={{ num }}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if orders.has_next %}
+                <a href="?month={{ selected_month }}&year={{ selected_year }}&page={{ orders.next_page_number }}">Next &raquo;</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

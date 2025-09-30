@@ -1,0 +1,256 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Checkout — Yotta Plus Shop</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --bg:#ffffff; --text:#111; --muted:#666; --brand:#0f766e; --brand-2:#115e59; --soft:#f5f7f9; --card:#fff; --border:#e5e7eb; --success:#059669; --warning:#d97706; --error:#dc2626; }
+    *{box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;margin:0;background:var(--bg);color:var(--text);line-height:1.6}
+    .container{max-width:1000px;margin:0 auto;padding:16px}
+    h1,h2,h3{margin:0 0 16px;font-weight:700}
+    .checkout-grid{display:grid;grid-template-columns:1fr 400px;gap:24px;margin-top:20px}
+    @media (max-width: 768px) {
+      .checkout-grid{grid-template-columns:1fr;gap:16px}
+    }
+    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px}
+    .form-group{margin-bottom:20px}
+    .form-group label{display:block;margin-bottom:8px;font-weight:600;color:var(--text)}
+    .form-control,.form-select{width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:16px;background:#fff}
+    .form-control:focus,.form-select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(15,118,110,0.1)}
+    .payment-methods{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px}
+    .payment-option{display:flex;align-items:center;padding:16px;border:2px solid var(--border);border-radius:12px;cursor:pointer;transition:all 0.2s}
+    .payment-option:hover{border-color:var(--brand);background:rgba(15,118,110,0.05)}
+    .payment-option input[type="radio"]{margin-right:12px;accent-color:var(--brand)}
+    .payment-option.selected{border-color:var(--brand);background:rgba(15,118,110,0.1)}
+    .payment-logo{width:40px;height:40px;border-radius:8px;margin-right:12px;display:flex;align-items:center;justify-content:center;font-weight:bold;color:white}
+    .bkash{background:#e2136e} .rocket{background:#8e44ad} .upay{background:#ff6b35} .nagad{background:#f39c12}
+    .btn{display:inline-block;padding:14px 24px;background:var(--brand);color:#fff;text-decoration:none;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:16px;width:100%;text-align:center}
+    .btn:hover{background:var(--brand-2)}
+    .btn:disabled{background:var(--muted);cursor:not-allowed}
+    .back{margin-bottom:20px}
+    .back a{color:var(--brand);text-decoration:none;font-weight:600}
+    .order-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)}
+    .order-item:last-child{border-bottom:none}
+    .item-info{flex:1}
+    .item-name{font-weight:600;margin-bottom:4px}
+    .item-details{color:var(--muted);font-size:14px}
+    .item-price{font-weight:700;color:var(--brand)}
+    .total-row{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-top:2px solid var(--border);margin-top:16px;font-size:18px;font-weight:700}
+    .error{color:var(--error);font-size:14px;margin-top:4px}
+    .required{color:var(--error)}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    @media (max-width: 600px) {
+      .form-row{grid-template-columns:1fr}
+      .payment-methods{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="back">
+    <a href="{% url 'view_cart' %}">← Back to Cart</a>
+  </div>
+
+  <h1>🛒 Checkout</h1>
+
+  <div class="checkout-grid">
+    <!-- Left Column: Checkout Form -->
+    <div>
+      <form method="post" id="checkout-form">
+        {% csrf_token %}
+        
+        <!-- Delivery Address -->
+        <div class="card">
+          <h2>📍 Delivery Address</h2>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="{{ form.division.id_for_label }}">Division <span class="required">*</span></label>
+              {{ form.division }}
+              {% if form.division.errors %}
+                <div class="error">{{ form.division.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="form-group">
+              <label for="{{ form.district.id_for_label }}">District <span class="required">*</span></label>
+              {{ form.district }}
+              {% if form.district.errors %}
+                <div class="error">{{ form.district.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="{{ form.thana.id_for_label }}">Thana <span class="required">*</span></label>
+              {{ form.thana }}
+              {% if form.thana.errors %}
+                <div class="error">{{ form.thana.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="form-group">
+              <label for="{{ form.area.id_for_label }}">{{ form.area.label }} <span class="required">*</span></label>
+              {{ form.area }}
+              {% if form.area.errors %}
+                <div class="error">{{ form.area.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="{{ form.detailed_address.id_for_label }}">{{ form.detailed_address.label }}</label>
+            {{ form.detailed_address }}
+            {% if form.detailed_address.errors %}
+              <div class="error">{{ form.detailed_address.errors.0 }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="form-group">
+            <label for="{{ form.phone_number.id_for_label }}">{{ form.phone_number.label }} <span class="required">*</span></label>
+            {{ form.phone_number }}
+            {% if form.phone_number.errors %}
+              <div class="error">{{ form.phone_number.errors.0 }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="card">
+          <h2>💳 Payment Method</h2>
+          <p style="color:var(--muted);margin-bottom:16px">Select your preferred mobile banking method</p>
+          
+          <div class="payment-methods">
+            {% for choice in form.payment_method %}
+              <div class="payment-option" onclick="selectPayment(this, '{{ choice.choice_value }}')">
+                {{ choice.tag }}
+                <div class="payment-logo {{ choice.choice_value }}">
+                  {% if choice.choice_value == 'bkash' %}bK
+                  {% elif choice.choice_value == 'rocket' %}🚀
+                  {% elif choice.choice_value == 'upay' %}UP
+                  {% elif choice.choice_value == 'nagad' %}৳{% endif %}
+                </div>
+                <span>{{ choice.choice_label }}</span>
+              </div>
+            {% endfor %}
+          </div>
+          {% if form.payment_method.errors %}
+            <div class="error">{{ form.payment_method.errors.0 }}</div>
+          {% endif %}
+          
+          <div class="form-group" style="margin-top:20px">
+            <label for="{{ form.payment_phone.id_for_label }}">{{ form.payment_phone.label }} <span class="required">*</span></label>
+            {{ form.payment_phone }}
+            <small style="color:var(--muted);display:block;margin-top:4px">
+              Enter the mobile number you'll use for payment
+            </small>
+            {% if form.payment_phone.errors %}
+              <div class="error">{{ form.payment_phone.errors.0 }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <button type="submit" class="btn">
+          🔒 Place Order (৳{{ cart_total }})
+        </button>
+      </form>
+    </div>
+
+    <!-- Right Column: Order Summary -->
+    <div>
+      <div class="card">
+        <h2>📋 Order Summary</h2>
+        {% for item in cart.items.all %}
+          <div class="order-item">
+            <div class="item-info">
+              <div class="item-name">{{ item.product.name }}</div>
+              <div class="item-details">Qty: {{ item.quantity }} × ৳{{ item.product.price }}</div>
+            </div>
+            <div class="item-price">৳{{ item.subtotal }}</div>
+          </div>
+        {% endfor %}
+        
+        <div class="total-row">
+          <span>Total Amount:</span>
+          <span style="color:var(--brand)">৳{{ cart_total }}</span>
+        </div>
+        
+        <div style="background:var(--soft);padding:16px;border-radius:8px;margin-top:16px">
+          <p style="margin:0;font-size:14px;color:var(--muted)">
+            <strong>📞 Next Steps:</strong><br>
+            After placing your order, you'll receive a confirmation call within 15 minutes. 
+            Please keep your selected payment method ready for the transaction.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Handle cascading dropdowns
+document.getElementById('id_division').addEventListener('change', function() {
+    const divisionId = this.value;
+    const districtSelect = document.getElementById('id_district');
+    const thanaSelect = document.getElementById('id_thana');
+    
+    // Clear dependent dropdowns
+    districtSelect.innerHTML = '<option value="">Select District</option>';
+    thanaSelect.innerHTML = '<option value="">Select Thana</option>';
+    
+    if (divisionId) {
+        fetch(`/ajax/load-districts/?division_id=${divisionId}`)
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(district => {
+                    districtSelect.innerHTML += `<option value="${district.id}">${district.name}</option>`;
+                });
+            });
+    }
+});
+
+document.getElementById('id_district').addEventListener('change', function() {
+    const districtId = this.value;
+    const thanaSelect = document.getElementById('id_thana');
+    
+    // Clear dependent dropdown
+    thanaSelect.innerHTML = '<option value="">Select Thana</option>';
+    
+    if (districtId) {
+        fetch(`/ajax/load-thanas/?district_id=${districtId}`)
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(thana => {
+                    thanaSelect.innerHTML += `<option value="${thana.id}">${thana.name}</option>`;
+                });
+            });
+    }
+});
+
+// Handle payment method selection
+function selectPayment(element, value) {
+    // Remove selected class from all options
+    document.querySelectorAll('.payment-option').forEach(opt => {
+        opt.classList.remove('selected');
+    });
+    
+    // Add selected class to clicked option
+    element.classList.add('selected');
+    
+    // Check the radio button
+    element.querySelector('input[type="radio"]').checked = true;
+}
+
+// Initialize payment method selection
+document.querySelectorAll('.payment-option input[type="radio"]').forEach(radio => {
+    if (radio.checked) {
+        radio.closest('.payment-option').classList.add('selected');
+    }
+});
+</script>
+
+</body>
+</html>

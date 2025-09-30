@@ -1,0 +1,137 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Order Confirmation — Yotta Plus Shop</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --bg:#ffffff; --text:#111; --muted:#666; --brand:#0f766e; --brand-2:#115e59; --soft:#f5f7f9; --card:#fff; --border:#e5e7eb; --success:#059669; }
+    *{box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;margin:0;background:var(--bg);color:var(--text);line-height:1.6}
+    .container{max-width:800px;margin:0 auto;padding:16px}
+    h1,h2,h3{margin:0 0 16px;font-weight:700}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px}
+    .success-header{text-align:center;background:linear-gradient(135deg,var(--success),var(--brand));color:white;padding:40px 24px;border-radius:12px;margin-bottom:24px}
+    .success-header h1{color:white;font-size:2.5rem;margin-bottom:8px}
+    .success-header p{font-size:1.1rem;opacity:0.9;margin:0}
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px}
+    @media (max-width: 768px) {
+      .info-grid{grid-template-columns:1fr}
+    }
+    .info-section h3{color:var(--brand);margin-bottom:12px}
+    .info-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
+    .info-item:last-child{border-bottom:none}
+    .info-label{font-weight:600}
+    .info-value{color:var(--muted)}
+    .order-items{margin-bottom:24px}
+    .order-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)}
+    .order-item:last-child{border-bottom:none}
+    .item-info{flex:1}
+    .item-name{font-weight:600;margin-bottom:4px}
+    .item-details{color:var(--muted);font-size:14px}
+    .item-price{font-weight:700;color:var(--brand)}
+    .total-row{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-top:2px solid var(--border);margin-top:16px;font-size:18px;font-weight:700}
+    .btn{display:inline-block;padding:14px 24px;background:var(--brand);color:#fff;text-decoration:none;border-radius:8px;border:none;cursor:pointer;font-weight:600;text-align:center;margin-right:12px}
+    .btn:hover{background:var(--brand-2)}
+    .btn.secondary{background:var(--soft);color:var(--text);border:1px solid var(--border)}
+    .btn.secondary:hover{background:var(--border)}
+    .actions{text-align:center;margin-top:24px}
+    .status-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;text-transform:uppercase}
+    .status-pending{background:rgba(217,119,6,0.1);color:#d97706}
+    .payment-info{background:var(--soft);padding:16px;border-radius:8px;margin-top:16px}
+    .payment-info h4{margin:0 0 8px;color:var(--brand)}
+    .payment-info p{margin:0;font-size:14px;color:var(--muted)}
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="success-header">
+    <h1>🎉 Order Confirmed!</h1>
+    <p>Thank you for your order. We'll contact you shortly for payment confirmation.</p>
+  </div>
+
+  <div class="info-grid">
+    <div class="card">
+      <h3>📋 Order Details</h3>
+      <div class="info-item">
+        <span class="info-label">Order ID:</span>
+        <span class="info-value">#{{ order.id }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Order Date:</span>
+        <span class="info-value">{{ order.created_at|date:"F d, Y" }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Order Time:</span>
+        <span class="info-value">{{ order.created_at|time:"g:i A" }} ({{ order.created_at|timesince }} ago)</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Status:</span>
+        <span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Total Amount:</span>
+        <span class="info-value" style="font-weight:700;color:var(--brand)">৳{{ order.total_price }}</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📍 Delivery Address</h3>
+      <div class="info-item">
+        <span class="info-label">Phone:</span>
+        <span class="info-value">{{ order.phone_number }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Address:</span>
+        <span class="info-value">{{ order.get_full_address }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Payment Method:</span>
+        <span class="info-value">{{ order.get_payment_method_display }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Payment Phone:</span>
+        <span class="info-value">{{ order.payment_phone }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🛍️ Ordered Items</h3>
+    <div class="order-items">
+      {% for item in order.items.all %}
+        <div class="order-item">
+          <div class="item-info">
+            <div class="item-name">{{ item.product.name }}</div>
+            <div class="item-details">Qty: {{ item.quantity }} × ৳{{ item.price }}</div>
+          </div>
+          <div class="item-price">৳{{ item.subtotal }}</div>
+        </div>
+      {% endfor %}
+      
+      <div class="total-row">
+        <span>Total Amount:</span>
+        <span style="color:var(--brand)">৳{{ order.total_price }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="payment-info">
+    <h4>💳 Payment Instructions</h4>
+    <p>
+      Our customer service team will call you within <strong>15 minutes</strong> to confirm your order and guide you through the 
+      <strong>{{ order.get_payment_method_display }}</strong> payment process using your number <strong>{{ order.payment_phone }}</strong>. 
+      Please keep your mobile banking app ready.
+    </p>
+  </div>
+
+  <div class="actions">
+    <a href="{% url 'order_history' %}" class="btn">View All Orders</a>
+    <a href="{% url 'homepage' %}" class="btn secondary">Continue Shopping</a>
+  </div>
+</div>
+
+</body>
+</html>

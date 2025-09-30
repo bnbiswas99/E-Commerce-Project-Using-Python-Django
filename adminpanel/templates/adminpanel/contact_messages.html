@@ -1,0 +1,260 @@
+{% extends "homepage/base.html" %}
+{% block title %}Contact Messages - Admin Panel{% endblock %}
+
+{% block content %}
+<style>
+  .nav-button {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 8px;
+    font-weight: 500;
+  }
+  
+  .nav-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+</style>
+<div class="container-fluid py-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+              <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-light btn-sm d-flex align-items-center gap-2" style="
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                color: white;
+                text-decoration: none;
+                transition: all 0.3s ease;
+              " onmouseover="this.style.backgroundColor='rgba(255, 255, 255, 0.1)'; this.style.transform='translateY(-1px)';" 
+                 onmouseout="this.style.backgroundColor='transparent'; this.style.transform='translateY(0)';">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+              </a>
+              <h4 class="mb-0">
+                <i class="fas fa-envelope me-2"></i>
+                Contact Messages
+              </h4>
+            </div>
+            <div class="d-flex gap-2">
+              <span class="badge bg-warning">{{ unread_messages }} Unread</span>
+              <span class="badge bg-success">{{ read_messages }} Read</span>
+              <span class="badge bg-info">{{ total_messages }} Total</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card-body">
+          <!-- Filter and Search Row -->
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <form method="get" class="d-flex gap-2">
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                  <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Messages</option>
+                  <option value="unread" {% if status_filter == 'unread' %}selected{% endif %}>Unread Messages</option>
+                  <option value="read" {% if status_filter == 'read' %}selected{% endif %}>Read Messages</option>
+                </select>
+                <input type="hidden" name="search" value="{{ search_query }}">
+              </form>
+            </div>
+            <div class="col-md-6">
+              <form method="get" class="d-flex gap-2">
+                <input type="text" name="search" class="form-control" placeholder="Search messages..." value="{{ search_query }}">
+                <input type="hidden" name="status" value="{{ status_filter }}">
+                <button type="submit" class="btn btn-outline-primary">
+                  <i class="fas fa-search"></i>
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Messages List -->
+          {% if messages %}
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th>Status</th>
+                    <th>From</th>
+                    <th>Email</th>
+                    <th>Message Preview</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for message in messages %}
+                  <tr class="{% if not message.is_read %}table-warning{% endif %} message-row" 
+                      onclick="viewMessage({{ message.id }})" style="cursor: pointer;">
+                    <td>
+                      {% if message.is_read %}
+                        <span class="badge bg-success">Read</span>
+                      {% else %}
+                        <span class="badge bg-warning">Unread</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <strong>{{ message.name }}</strong>
+                      {% if not message.is_read %}
+                        <i class="fas fa-circle text-warning ms-1" style="font-size: 8px;"></i>
+                      {% endif %}
+                    </td>
+                    <td>{{ message.email }}</td>
+                    <td>
+                      <div class="text-truncate" style="max-width: 200px;">
+                        {{ message.message|truncatewords:10 }}
+                      </div>
+                      <small class="text-muted">Click to view full message</small>
+                    </td>
+                    <td>
+                      <small class="text-muted">
+                        {{ message.created_at|date:"M d, Y" }}<br>
+                        {{ message.created_at|time:"h:i A" }}
+                      </small>
+                    </td>
+                    <td>
+                      <button type="button" class="btn btn-sm btn-outline-{% if message.is_read %}warning{% else %}success{% endif %}" 
+                              onclick="event.stopPropagation(); toggleReadStatus({{ message.id }}, {{ message.is_read|yesno:'true,false' }})"
+                              title="{% if message.is_read %}Mark as Unread{% else %}Mark as Read{% endif %}">
+                        {% if message.is_read %}
+                          <i class="fas fa-envelope me-1"></i>Mark Unread
+                        {% else %}
+                          <i class="fas fa-envelope-open me-1"></i>Mark Read
+                        {% endif %}
+                      </button>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if messages.has_other_pages %}
+            <nav aria-label="Messages pagination">
+              <ul class="pagination justify-content-center">
+                {% if messages.has_previous %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ messages.previous_page_number }}&status={{ status_filter }}&search={{ search_query }}">Previous</a>
+                  </li>
+                {% endif %}
+                
+                {% for num in messages.paginator.page_range %}
+                  {% if messages.number == num %}
+                    <li class="page-item active">
+                      <span class="page-link">{{ num }}</span>
+                    </li>
+                  {% elif num > messages.number|add:'-3' and num < messages.number|add:'3' %}
+                    <li class="page-item">
+                      <a class="page-link" href="?page={{ num }}&status={{ status_filter }}&search={{ search_query }}">{{ num }}</a>
+                    </li>
+                  {% endif %}
+                {% endfor %}
+                
+                {% if messages.has_next %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ messages.next_page_number }}&status={{ status_filter }}&search={{ search_query }}">Next</a>
+                  </li>
+                {% endif %}
+              </ul>
+            </nav>
+            {% endif %}
+
+          {% else %}
+            <div class="text-center py-5">
+              <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+              <h5 class="text-muted">No messages found</h5>
+              <p class="text-muted">
+                {% if status_filter != 'all' or search_query %}
+                  Try adjusting your filters or search terms.
+                {% else %}
+                  No contact messages have been received yet.
+                {% endif %}
+              </p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <div class="card mt-4 shadow-sm">
+    <div class="card-body text-center">
+      <div class="d-flex justify-content-center gap-3 flex-wrap">
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-primary d-flex align-items-center gap-2 nav-button">
+          <i class="fas fa-home"></i>
+          Dashboard
+        </a>
+        <a href="{% url 'manage_orders' %}" class="btn btn-outline-primary d-flex align-items-center gap-2 nav-button">
+          <i class="fas fa-shopping-cart"></i>
+          Orders
+        </a>
+        <a href="{% url 'sales_overview' %}" class="btn btn-outline-info d-flex align-items-center gap-2 nav-button">
+          <i class="fas fa-chart-line"></i>
+          Sales Analytics
+        </a>
+        <a href="{% url 'manage_products' %}" class="btn btn-outline-success d-flex align-items-center gap-2 nav-button">
+          <i class="fas fa-box"></i>
+          Products
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Simplified interface - only read/unread actions available -->
+
+<script>
+function viewMessage(messageId) {
+  window.location.href = `/adminpanel/messages/${messageId}/`;
+}
+
+function toggleReadStatus(messageId, isRead) {
+  fetch(`/adminpanel/messages/${messageId}/mark-read/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: `action=${isRead ? 'mark_unread' : 'mark_read'}`
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      location.reload();
+    }
+  })
+  .catch(error => console.error('Error:', error));
+}
+
+// Removed delete functionality - only keeping read/unread actions
+</script>
+
+<style>
+.card {
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.025);
+}
+
+.message-row:hover {
+  background-color: rgba(0, 123, 255, 0.1) !important;
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
+
+.badge {
+  font-size: 0.75em;
+}
+
+.btn-group-sm > .btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+</style>
+
+{% endblock %}

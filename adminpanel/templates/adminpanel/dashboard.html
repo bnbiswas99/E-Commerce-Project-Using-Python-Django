@@ -1,0 +1,180 @@
+{% extends "homepage/base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top:30px;">
+
+  <!-- Welcome header -->
+  <div style="text-align:center; margin-bottom:30px;">
+    <h1 style="font-size:32px; color:#0f766e; margin-bottom:10px;">
+      👋 Welcome, {{ request.user.username }}
+    </h1>
+    <p style="color:#666;">Here’s your admin control panel. Manage products, customers, and more.</p>
+  </div>
+
+  <!-- Dashboard grid -->
+  <div style="
+    display:grid; 
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:20px;
+  ">
+    <!-- Manage Categories -->
+    <a href="{% url 'manage_categories' %}" style="
+      background:#fff;
+      border:1px solid #e5e7eb;
+      border-radius:14px;
+      padding:30px 20px;
+      text-align:center;
+      text-decoration:none;
+      box-shadow:0 4px 8px rgba(0,0,0,0.05);
+      transition:0.2s;
+    " onmouseover="this.style.transform='scale(1.03)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.1)';" 
+       onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.05)';">
+      <div style="font-size:40px; margin-bottom:10px;">🏷️</div>
+      <h3 style="margin:0; color:#111;">Manage Categories</h3>
+      <p style="color:#666; font-size:14px; margin-top:6px;">Create and organize product categories.</p>
+    </a>
+
+    <!-- Manage Products -->
+    <a href="{% url 'manage_products' %}" style="
+      background:#fff;
+      border:1px solid #e5e7eb;
+      border-radius:14px;
+      padding:30px 20px;
+      text-align:center;
+      text-decoration:none;
+      box-shadow:0 4px 8px rgba(0,0,0,0.05);
+      transition:0.2s;
+    " onmouseover="this.style.transform='scale(1.03)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.1)';" 
+       onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.05)';">
+      <div style="font-size:40px; margin-bottom:10px;">📦</div>
+      <h3 style="margin:0; color:#111;">Manage Products</h3>
+      <p style="color:#666; font-size:14px; margin-top:6px;">Add, edit, or remove store products.</p>
+    </a>
+
+    <!-- Manage Customers -->
+    <a href="{% url 'manage_customers' %}" style="
+      background:#fff;
+      border:1px solid #e5e7eb;
+      border-radius:14px;
+      padding:30px 20px;
+      text-align:center;
+      text-decoration:none;
+      box-shadow:0 4px 8px rgba(0,0,0,0.05);
+      transition:0.2s;
+    " onmouseover="this.style.transform='scale(1.03)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.1)';" 
+       onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.05)';">
+      <div style="font-size:40px; margin-bottom:10px;">👥</div>
+      <h3 style="margin:0; color:#111;">Manage Customers</h3>
+      <p style="color:#666; font-size:14px; margin-top:6px;">View and search customer accounts.</p>
+    </a>
+
+    <!-- Manage Orders -->
+    <a href="{% url 'manage_orders' %}" style="
+      background:#fff;
+      border:1px solid #e5e7eb;
+      border-radius:14px;
+      padding:30px 20px;
+      text-align:center;
+      text-decoration:none;
+      box-shadow:0 4px 8px rgba(0,0,0,0.05);
+      transition:0.2s;
+    " onmouseover="this.style.transform='scale(1.03)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.1)';" 
+       onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.05)';">
+      <div style="font-size:40px; margin-bottom:10px;">📋</div>
+      <h3 style="margin:0; color:#111;">Manage Orders</h3>
+      <p style="color:#666; font-size:14px; margin-top:6px;">View and confirm customer orders.</p>
+    </a>
+
+    <!-- Daily Orders -->
+    <a href="{% url 'daily_orders' %}" style="
+      background:#fff;
+      border:1px solid #e5e7eb;
+      border-radius:14px;
+      padding:30px 20px;
+      text-align:center;
+      text-decoration:none;
+      box-shadow:0 4px 8px rgba(0,0,0,0.05);
+      transition:0.2s;
+    " onmouseover="this.style.transform='scale(1.03)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.1)';" 
+       onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.05)';">
+      <div style="font-size:40px; margin-bottom:10px;">📅</div>
+      <h3 style="margin:0; color:#111;">Daily Orders</h3>
+      <p style="color:#666; font-size:14px; margin-top:6px;">View today's order reports.</p>
+    </a>
+
+    <!-- Monthly Orders -->
+    <a href="{% url 'monthly_orders' %}" style="
+      background:#fff;
+      border:1px solid #e5e7eb;
+      border-radius:14px;
+      padding:30px 20px;
+      text-align:center;
+      text-decoration:none;
+      box-shadow:0 4px 8px rgba(0,0,0,0.05);
+      transition:0.2s;
+    " onmouseover="this.style.transform='scale(1.03)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.1)';" 
+       onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.05)';">
+      <div style="font-size:40px; margin-bottom:10px;">📊</div>
+      <h3 style="margin:0; color:#111;">Monthly Orders</h3>
+      <p style="color:#666; font-size:14px; margin-top:6px;">View monthly order reports.</p>
+    </a>
+
+    <!-- Sales Analytics -->
+<a href="{% url 'sales_overview' %}" style="
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:14px;
+  padding:30px 20px;
+  text-align:center;
+  text-decoration:none;
+  box-shadow:0 4px 8px rgba(0,0,0,0.05);
+  transition:0.2s;
+" onmouseover="this.style.transform='scale(1.03)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.1)';" 
+   onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.05)';">
+  <div style="font-size:40px; margin-bottom:10px;">�</div>
+  <h3 style="margin:0; color:#111;">Sales Analytics</h3>
+  <p style="color:#666; font-size:14px; margin-top:6px;">Statistical charts & graphs for sales data.</p>
+</a>
+
+    <!-- Contact Messages -->
+    <a href="{% url 'contact_messages' %}" style="
+      background:#fff;
+      border:1px solid #e5e7eb;
+      border-radius:14px;
+      padding:30px 20px;
+      text-align:center;
+      text-decoration:none;
+      box-shadow:0 4px 8px rgba(0,0,0,0.05);
+      transition:0.2s;
+    " onmouseover="this.style.transform='scale(1.03)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.1)';" 
+       onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.05)';">
+      <div style="font-size:40px; margin-bottom:10px;">📧</div>
+      <h3 style="margin:0; color:#111;">User Messages</h3>
+      <p style="color:#666; font-size:14px; margin-top:6px;">View and reply to customer messages.</p>
+    </a>
+
+    <!-- Logout -->
+    <a href="{% url 'admin_logout' %}" style="
+      background:#fff;
+      border:1px solid #e5e7eb;
+      border-radius:14px;
+      padding:30px 20px;
+      text-align:center;
+      text-decoration:none;
+      box-shadow:0 4px 8px rgba(0,0,0,0.05);
+      transition:0.2s;
+    " onmouseover="this.style.transform='scale(1.03)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.1)';" 
+       onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.05)';">
+      <div style="font-size:40px; margin-bottom:10px;">🚪</div>
+      <h3 style="margin:0; color:#111;">Logout</h3>
+      <p style="color:#666; font-size:14px; margin-top:6px;">Sign out of the admin panel.</p>
+    </a>
+
+    
+
+<!-- Future Feature Placeholder -->
+  </div>
+
+</div>
+{% endblock %}

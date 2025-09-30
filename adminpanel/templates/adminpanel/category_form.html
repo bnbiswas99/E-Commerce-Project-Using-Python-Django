@@ -1,0 +1,170 @@
+{% extends "homepage/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'manage_categories' %}">Categories</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
+        </ol>
+    </nav>
+    
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        {% if title == 'Add Category' %}
+                            <i class="fas fa-plus me-2"></i>
+                        {% else %}
+                            <i class="fas fa-edit me-2"></i>
+                        {% endif %}
+                        {{ title }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Error Messages -->
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {% if message.tags == 'success' %}
+                                    <i class="fas fa-check-circle me-2"></i>
+                                {% else %}
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                {% endif %}
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <!-- Category Form -->
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Category Name -->
+                        <div class="mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">
+                                <i class="fas fa-tag me-2"></i>Category Name *
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.name.errors %}
+                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">
+                                <i class="fas fa-align-left me-2"></i>Description
+                            </label>
+                            {{ form.description }}
+                            <div class="form-text">Provide a brief description of this category (optional).</div>
+                            {% if form.description.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.description.errors %}
+                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Category Image -->
+                        <div class="mb-3">
+                            <label for="{{ form.image.id_for_label }}" class="form-label">
+                                <i class="fas fa-image me-2"></i>Category Image
+                            </label>
+                            {{ form.image }}
+                            <div class="form-text">Upload an image to represent this category (optional).</div>
+                            {% if form.image.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.image.errors %}
+                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Preview existing image if editing -->
+                            {% if form.instance.get_image_url %}
+                                <div class="mt-2">
+                                    <small class="text-muted">Current image:</small><br>
+                                    <img src="{{ form.instance.get_image_url }}" alt="{{ form.instance.name }}" 
+                                         class="img-thumbnail" style="max-width: 150px; max-height: 150px;">
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Is Active -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                {{ form.is_active }}
+                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                    <i class="fas fa-toggle-on me-2"></i>Active Category
+                                </label>
+                            </div>
+                            <div class="form-text">Inactive categories won't be available for product assignment.</div>
+                            {% if form.is_active.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.is_active.errors %}
+                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'manage_categories' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Categories
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>
+                                {% if title == 'Add Category' %}
+                                    Create Category
+                                {% else %}
+                                    Update Category
+                                {% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Help Text -->
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Category Guidelines
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li><strong>Name:</strong> Choose a clear, descriptive name for your category</li>
+                        <li><strong>Description:</strong> Help customers understand what products belong to this category</li>
+                        <li><strong>Image:</strong> Use high-quality images (recommended: 300x300px or larger)</li>
+                        <li><strong>Status:</strong> Only active categories appear in product forms and customer-facing areas</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+    .card {
+        border: none;
+        border-radius: 10px;
+    }
+</style>
+{% endblock %}

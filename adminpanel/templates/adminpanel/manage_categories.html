@@ -1,0 +1,437 @@
+{% extends "homepage/base.html" %}
+{% block title %}Manage Categories{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    {% csrf_token %}
+    <!-- Quick Navigation Bar -->
+    <div class="card mb-3">
+        <div class="card-body py-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary btn-sm me-2">
+                        <i class="fas fa-home me-1"></i>Dashboard
+                    </a>
+                    <a href="{% url 'manage_products' %}" class="btn btn-outline-primary btn-sm me-2">
+                        <i class="fas fa-box me-1"></i>Products
+                    </a>
+                    <span class="badge bg-primary">Categories</span>
+                </div>
+                <small class="text-muted">Admin Panel Navigation</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary">
+            <i class="fas fa-tags me-2"></i>Manage Categories
+        </h2>
+        <a href="{% url 'add_category' %}" class="btn btn-success">
+            <i class="fas fa-plus me-2"></i>Add New Category
+        </a>
+    </div>
+
+    <!-- Success/Error Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {% if message.tags == 'success' %}
+                    <i class="fas fa-check-circle me-2"></i>
+                {% else %}
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                {% endif %}
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Categories Overview Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-tags fa-2x mb-2"></i>
+                    <h4>{{ categories.count }}</h4>
+                    <p class="mb-0">Total Categories</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-2x mb-2"></i>
+                    <h4>{{ active_categories_count|default:"0" }}</h4>
+                    <p class="mb-0">Active Categories</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-box fa-2x mb-2"></i>
+                    <h4>{{ total_products|default:"0" }}</h4>
+                    <p class="mb-0">Total Products</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-clock fa-2x mb-2"></i>
+                    <h4>Recent</h4>
+                    <p class="mb-0">Latest Updates</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Categories Table -->
+    <div class="card shadow">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>Categories List
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            {% if categories %}
+                <!-- Bulk Actions -->
+                <div class="p-3 border-bottom bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="bulkDelete()" disabled id="bulkDeleteBtn">
+                                <i class="fas fa-trash me-1"></i>Delete Selected
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="selectAll()">
+                                <i class="fas fa-check-square me-1"></i>Select All
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="deselectAll()">
+                                <i class="fas fa-square me-1"></i>Deselect All
+                            </button>
+                        </div>
+                        <small class="text-muted">
+                            <span id="selectedCount">0</span> selected
+                        </small>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th width="50">
+                                    <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
+                                </th>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Products</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category in categories %}
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" class="category-checkbox" value="{{ category.pk }}" onchange="updateBulkActions()">
+                                    </td>
+                                    <td>
+                                        {% if category.get_image_url %}
+                                            <img src="{{ category.get_image_url }}" alt="{{ category.name }}" 
+                                                 class="rounded" style="width: 50px; height: 50px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                                 style="width: 50px; height: 50px;">
+                                                <i class="fas fa-image text-muted"></i>
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>{{ category.name }}</strong>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">
+                                            {% if category.description %}
+                                                {{ category.description|truncatechars:50 }}
+                                            {% else %}
+                                                <em>No description</em>
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'category_products' category.pk %}" class="badge bg-info text-decoration-none">
+                                            {{ category.get_products_count }} products
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <button type="button" 
+                                                class="btn btn-sm {% if category.is_active %}btn-success{% else %}btn-secondary{% endif %} badge-button"
+                                                onclick="toggleStatus({{ category.pk }}, {{ category.is_active|yesno:'false,true' }})"
+                                                title="Click to toggle status">
+                                            {% if category.is_active %}
+                                                <i class="fas fa-check me-1"></i>Active
+                                            {% else %}
+                                                <i class="fas fa-times me-1"></i>Inactive
+                                            {% endif %}
+                                        </button>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ category.created_at|date:"M d, Y" }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'category_products' category.pk %}" 
+                                               class="btn btn-sm btn-outline-info" title="View Products">
+                                                <i class="fas fa-eye me-1"></i>View
+                                            </a>
+                                            <a href="{% url 'edit_category' category.pk %}" 
+                                               class="btn btn-sm btn-outline-primary" title="Edit Category">
+                                                <i class="fas fa-edit me-1"></i>Edit
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-danger" 
+                                                    onclick="confirmDelete('{{ category.name }}', '{% url 'delete_category' category.pk %}')"
+                                                    title="Delete Category">
+                                                <i class="fas fa-trash me-1"></i>Delete
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-tags fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No Categories Found</h5>
+                    <p class="text-muted">Start by creating your first category to organize your products.</p>
+                    <a href="{% url 'add_category' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Create First Category
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="mt-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Categories</li>
+            </ol>
+        </nav>
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<script>
+// Single delete function
+function confirmDelete(categoryName, deleteUrl) {
+    if (confirm(`Are you sure you want to delete the category "${categoryName}"?\n\nThis action cannot be undone.`)) {
+        // Create a form and submit it
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = deleteUrl;
+        
+        // Add CSRF token if available
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfToken) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = csrfToken.value;
+            form.appendChild(csrfInput);
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Bulk operations functions
+function updateBulkActions() {
+    const checkboxes = document.querySelectorAll('.category-checkbox:checked');
+    const count = checkboxes.length;
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const selectedCount = document.getElementById('selectedCount');
+    
+    selectedCount.textContent = count;
+    bulkDeleteBtn.disabled = count === 0;
+    
+    // Update main checkbox state
+    const allCheckboxes = document.querySelectorAll('.category-checkbox');
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    
+    if (count === 0) {
+        selectAllCheckbox.indeterminate = false;
+        selectAllCheckbox.checked = false;
+    } else if (count === allCheckboxes.length) {
+        selectAllCheckbox.indeterminate = false;
+        selectAllCheckbox.checked = true;
+    } else {
+        selectAllCheckbox.indeterminate = true;
+        selectAllCheckbox.checked = false;
+    }
+}
+
+function toggleSelectAll() {
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    const checkboxes = document.querySelectorAll('.category-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAllCheckbox.checked;
+    });
+    
+    updateBulkActions();
+}
+
+function selectAll() {
+    const checkboxes = document.querySelectorAll('.category-checkbox');
+    checkboxes.forEach(checkbox => checkbox.checked = true);
+    updateBulkActions();
+}
+
+function deselectAll() {
+    const checkboxes = document.querySelectorAll('.category-checkbox');
+    checkboxes.forEach(checkbox => checkbox.checked = false);
+    updateBulkActions();
+}
+
+function bulkDelete() {
+    const selectedCheckboxes = document.querySelectorAll('.category-checkbox:checked');
+    const count = selectedCheckboxes.length;
+    
+    if (count === 0) return;
+    
+    if (confirm(`Are you sure you want to delete ${count} selected categories?\n\nThis action cannot be undone.`)) {
+        const categoryIds = Array.from(selectedCheckboxes).map(cb => cb.value);
+        
+        // Create form for bulk delete
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{% url "bulk_delete_categories" %}';
+        
+        // Add CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfToken) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = csrfToken.value;
+            form.appendChild(csrfInput);
+        }
+        
+        // Add category IDs
+        categoryIds.forEach(id => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'category_ids';
+            input.value = id;
+            form.appendChild(input);
+        });
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Toggle category status
+function toggleStatus(categoryId, newStatus) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `{% url "toggle_category_status" 0 %}`.replace('0', categoryId);
+    
+    // Add CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrfToken) {
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken.value;
+        form.appendChild(csrfInput);
+    }
+    
+    // Add new status
+    const statusInput = document.createElement('input');
+    statusInput.type = 'hidden';
+    statusInput.name = 'is_active';
+    statusInput.value = newStatus;
+    form.appendChild(statusInput);
+    
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+
+<style>
+    .card {
+        transition: transform 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-2px);
+    }
+    .table th {
+        border-top: none;
+    }
+    .breadcrumb {
+        background-color: #f8f9fa;
+        border-radius: 0.375rem;
+        padding: 0.75rem 1rem;
+    }
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: ">";
+        color: #6c757d;
+    }
+    .btn-group .btn {
+        margin-right: 2px;
+    }
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+        color: white;
+    }
+    .btn-danger:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+        transform: scale(1.05);
+    }
+    
+    .category-checkbox:checked + td {
+        background-color: rgba(0, 123, 255, 0.1);
+    }
+    
+    .table tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.03);
+    }
+    
+    .table tbody tr:has(.category-checkbox:checked) {
+        background-color: rgba(13, 110, 253, 0.08);
+    }
+    
+    #bulkDeleteBtn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    .table-actions {
+        white-space: nowrap;
+    }
+    
+    .badge-button {
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .badge-button:hover {
+        transform: scale(1.05);
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}

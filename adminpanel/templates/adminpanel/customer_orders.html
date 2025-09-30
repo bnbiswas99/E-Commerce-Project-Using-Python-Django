@@ -1,0 +1,39 @@
+{% extends "homepage/base.html" %}
+{% block title %}Orders for {{ customer.username }}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:800px; margin:20px auto;">
+  <h2>Orders for {{ customer.username }} ({{ customer.email }})</h2>
+
+  {% if orders %}
+    <table border="1" style="width:100%; margin-top:20px;">
+      <tr>
+        <th>Order ID</th>
+        <th>Date</th>
+        <th>Total Price</th>
+        <th>Items</th>
+      </tr>
+      {% for order in orders %}
+      <tr>
+        <td>#{{ order.id }}</td>
+        <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
+        <td>৳{{ order.total_price }}</td>
+        <td>
+          <ul>
+          {% for item in order.items.all %}
+            <li>{{ item.product.name }} × {{ item.quantity }} (৳{{ item.price }})</li>
+          {% endfor %}
+          </ul>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p>No orders found for this customer.</p>
+  {% endif %}
+
+  <p style="margin-top:20px;">
+    <a href="{% url 'manage_customers' %}" class="btn">← Back to Customers</a>
+  </p>
+</div>
+{% endblock %}

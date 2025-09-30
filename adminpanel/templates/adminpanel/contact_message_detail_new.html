@@ -1,0 +1,252 @@
+{% extends "homepage/base.html" %}
+{% block title %}Message from {{ message.name }} - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="row">
+    <div class="col-12">
+      <!-- Back Button -->
+      <div class="mb-3">
+        <a href="{% url 'contact_messages' %}" class="btn btn-outline-secondary">
+          <i class="fas fa-arrow-left me-2"></i>Back to Messages
+        </a>
+      </div>
+
+      <div class="row">
+        <!-- Message Details -->
+        <div class="col-md-8">
+          <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">
+                <i class="fas fa-envelope me-2"></i>
+                Message from {{ message.name }}
+              </h5>
+              <div>
+                {% if message.admin_reply %}
+                  <span class="badge bg-success">Replied</span>
+                {% elif message.is_read %}
+                  <span class="badge bg-info">Read</span>
+                {% else %}
+                  <span class="badge bg-warning">Unread</span>
+                {% endif %}
+              </div>
+            </div>
+            
+            <div class="card-body">
+              <!-- Message Info -->
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <strong>From:</strong> {{ message.name }}<br>
+                  <strong>Email:</strong> 
+                  <a href="mailto:{{ message.email }}">{{ message.email }}</a>
+                </div>
+                <div class="col-md-6 text-md-end">
+                  <strong>Date:</strong> {{ message.created_at|date:"M d, Y h:i A" }}<br>
+                  <strong>Status:</strong> 
+                  {% if message.is_read %}
+                    <span class="text-success">Read</span>
+                  {% else %}
+                    <span class="text-warning">Unread</span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Original Message -->
+              <div class="mb-4">
+                <h6 class="text-muted mb-2">Original Message:</h6>
+                <div class="border-start border-primary border-4 ps-3">
+                  <p class="mb-0">{{ message.message|linebreaks }}</p>
+                </div>
+              </div>
+
+              <!-- Admin Reply Section -->
+              {% if message.admin_reply %}
+              <div class="mb-4">
+                <h6 class="text-muted mb-2">Admin Reply:</h6>
+                <div class="bg-light p-3 rounded">
+                  <p class="mb-0">{{ message.admin_reply|linebreaks }}</p>
+                  <small class="text-muted">
+                    Replied on: {{ message.replied_at|date:"M d, Y h:i A" }}
+                  </small>
+                </div>
+              </div>
+              {% endif %}
+
+              <!-- Reply Form -->
+              <div class="mt-4">
+                <h6 class="text-muted mb-3">
+                  {% if message.admin_reply %}Update Reply{% else %}Send Reply{% endif %}
+                </h6>
+                <form method="post">
+                  {% csrf_token %}
+                  <div class="mb-3">
+                    <textarea name="admin_reply" class="form-control" rows="5" 
+                              placeholder="Type your reply here...">{{ message.admin_reply }}</textarea>
+                  </div>
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-reply me-2"></i>
+                    {% if message.admin_reply %}Update Reply{% else %}Send Reply{% endif %}
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Panel -->
+        <div class="col-md-4">
+          <div class="card shadow-sm">
+            <div class="card-header">
+              <h6 class="mb-0">Quick Actions</h6>
+            </div>
+            <div class="card-body">
+              <!-- Email Client -->
+              <a href="mailto:{{ message.email }}?subject=Re: Your message to Yotta Plus Shop&body=Dear {{ message.name }},%0A%0AThank you for contacting us.%0A%0ABest regards,%0AYotta Plus Shop Team" 
+                 class="btn btn-outline-primary btn-sm w-100 mb-2">
+                <i class="fas fa-envelope me-2"></i>Reply via Email
+              </a>
+
+              <!-- Mark as Read/Unread -->
+              <button type="button" class="btn btn-outline-secondary btn-sm w-100 mb-2" 
+                      onclick="toggleReadStatus({{ message.id }}, {{ message.is_read|yesno:'true,false' }})">
+                {% if message.is_read %}
+                  <i class="fas fa-envelope me-2"></i>Mark as Unread
+                {% else %}
+                  <i class="fas fa-envelope-open me-2"></i>Mark as Read
+                {% endif %}
+              </button>
+
+              <!-- Delete Message -->
+              <button type="button" class="btn btn-outline-danger btn-sm w-100" 
+                      onclick="confirmDelete()">
+                <i class="fas fa-trash me-2"></i>Delete Message
+              </button>
+            </div>
+          </div>
+
+          <!-- Customer Info -->
+          <div class="card shadow-sm mt-3">
+            <div class="card-header">
+              <h6 class="mb-0">Customer Information</h6>
+            </div>
+            <div class="card-body">
+              <p><strong>Name:</strong> {{ message.name }}</p>
+              <p><strong>Email:</strong> {{ message.email }}</p>
+              <p><strong>First Contact:</strong> {{ message.created_at|date:"M d, Y" }}</p>
+              
+              <!-- Check for other messages from same email -->
+              {% comment %}
+              Future enhancement: Show other messages from the same customer
+              {% endcomment %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete Message</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this message from <strong>{{ message.name }}</strong>?</p>
+        <p class="text-muted">This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form method="post" action="{% url 'delete_contact_message' message.id %}" style="display: inline;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">
+            <i class="fas fa-trash me-2"></i>Delete Message
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleReadStatus(messageId, isRead) {
+  fetch(`/adminpanel/messages/${messageId}/mark-read/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: `action=${isRead ? 'mark_unread' : 'mark_read'}`
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      location.reload();
+    } else {
+      alert('Error updating message status');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error updating message status');
+  });
+}
+
+function confirmDelete() {
+  var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+  deleteModal.show();
+}
+
+// Auto-resize textarea
+document.addEventListener('DOMContentLoaded', function() {
+  const textarea = document.querySelector('textarea[name="admin_reply"]');
+  if (textarea) {
+    textarea.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
+    });
+    
+    // Initial resize
+    textarea.style.height = 'auto';
+    textarea.style.height = (textarea.scrollHeight) + 'px';
+  }
+});
+</script>
+
+<style>
+.card {
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.border-start {
+  border-left: 4px solid var(--bs-primary) !important;
+}
+
+.btn-sm {
+  font-size: 0.875rem;
+}
+
+.bg-light {
+  background-color: #f8f9fa !important;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.card-header h5,
+.card-header h6 {
+  margin-bottom: 0;
+}
+
+.badge {
+  font-size: 0.75em;
+}
+</style>
+
+{% endblock %}

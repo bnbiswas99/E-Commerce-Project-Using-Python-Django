@@ -1,0 +1,215 @@
+{% extends "homepage/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'manage_products' %}">Products</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
+        </ol>
+    </nav>
+    
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        {% if title == 'Add Product' %}
+                            <i class="fas fa-plus me-2"></i>
+                        {% else %}
+                            <i class="fas fa-edit me-2"></i>
+                        {% endif %}
+                        {{ title }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Error Messages -->
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {% if message.tags == 'success' %}
+                                    <i class="fas fa-check-circle me-2"></i>
+                                {% else %}
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                {% endif %}
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <!-- Product Form -->
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Product Name -->
+                        <div class="mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">
+                                <i class="fas fa-box me-2"></i>Product Name *
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.name.errors %}
+                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Price -->
+                        <div class="mb-3">
+                            <label for="{{ form.price.id_for_label }}" class="form-label">
+                                <i class="fas fa-dollar-sign me-2"></i>Price *
+                            </label>
+                            {{ form.price }}
+                            {% if form.price.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.price.errors %}
+                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Stock -->
+                        <div class="mb-3">
+                            <label for="{{ form.stock.id_for_label }}" class="form-label">
+                                <i class="fas fa-warehouse me-2"></i>Stock Quantity *
+                            </label>
+                            {{ form.stock }}
+                            <div class="form-text">Number of items available in inventory.</div>
+                            {% if form.stock.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.stock.errors %}
+                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Category -->
+                        <div class="mb-3">
+                            <label for="{{ form.category.id_for_label }}" class="form-label">
+                                <i class="fas fa-tags me-2"></i>Category *
+                            </label>
+                            {{ form.category }}
+                            <div class="form-text">
+                                Select a category for this product. 
+                                <a href="{% url 'manage_categories' %}" target="_blank">Manage categories</a>
+                            </div>
+                            {% if form.category.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.category.errors %}
+                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Product Image -->
+                        <div class="mb-3">
+                            <label for="{{ form.image.id_for_label }}" class="form-label">
+                                <i class="fas fa-image me-2"></i>Product Image
+                            </label>
+                            {{ form.image }}
+                            <div class="form-text">Upload an image for this product (optional).</div>
+                            {% if form.image.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.image.errors %}
+                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Preview existing image if editing -->
+                            {% if form.instance.get_image_url %}
+                                <div class="mt-2">
+                                    <small class="text-muted">Current image:</small><br>
+                                    <img src="{{ form.instance.get_image_url }}" alt="{{ form.instance.name }}" 
+                                         class="img-thumbnail" style="max-width: 150px; max-height: 150px;">
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Available -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                {{ form.available }}
+                                <label class="form-check-label" for="{{ form.available.id_for_label }}">
+                                    <i class="fas fa-toggle-on me-2"></i>Product Available
+                                </label>
+                            </div>
+                            <div class="form-text">Uncheck to hide this product from customers.</div>
+                            {% if form.available.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.available.errors %}
+                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'manage_products' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Products
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>
+                                {% if title == 'Add Product' %}
+                                    Create Product
+                                {% else %}
+                                    Update Product
+                                {% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Help Text -->
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Product Guidelines
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li><strong>Name:</strong> Choose a clear, descriptive name for your product</li>
+                        <li><strong>Price:</strong> Enter the selling price (use decimal format like 19.99)</li>
+                        <li><strong>Stock:</strong> Keep track of inventory levels</li>
+                        <li><strong>Category:</strong> Choose the most appropriate category for easy browsing</li>
+                        <li><strong>Image:</strong> Use high-quality product images for better customer experience</li>
+                        <li><strong>Availability:</strong> Control product visibility in the store</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+    .card {
+        border: none;
+        border-radius: 10px;
+    }
+    .breadcrumb {
+        background-color: #f8f9fa;
+        border-radius: 0.375rem;
+        padding: 0.75rem 1rem;
+    }
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: ">";
+        color: #6c757d;
+    }
+</style>
+{% endblock %}

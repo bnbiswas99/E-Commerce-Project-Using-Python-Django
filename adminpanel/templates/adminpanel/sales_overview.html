@@ -1,0 +1,175 @@
+{% extends "homepage/base.html" %}
+{% block title %}Sales Overview{% endblock %}
+
+{% block content %}
+<style>
+  .sales-container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .sales-section {
+    background: #f6f8fa;
+    padding: 28px 32px 32px 32px;
+    border-radius: 8px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+    margin-bottom: 38px;
+  }
+  .sales-section:last-child {
+    margin-bottom: 0;
+  }
+  .sales-section h3 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    color: #343a40;
+    font-weight: 600;
+  }
+  .sales-title {
+    margin-bottom: 24px;
+    color: #22223b;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .sales-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    margin-top: 10px;
+  }
+  .sales-table th, .sales-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #e9ecef;
+    text-align: left;
+  }
+  .sales-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+  }
+  .sales-table tr:hover {
+    background: #f1f3f5;
+  }
+  .admin-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 25px;
+  }
+  .btn {
+    padding: 8px 18px;
+    border: none;
+    border-radius: 4px;
+    background: #007bff;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.2s;
+    cursor: pointer;
+  }
+  .btn.dashboard {
+    background: #343a40;
+    margin-right: 10px;
+  }
+  .btn:hover {
+    opacity: 0.9;
+  }
+  @media (max-width: 700px) {
+    .sales-section {
+      padding: 16px 6px 18px 6px;
+    }
+    .sales-title {
+      font-size: 1.2rem;
+    }
+    .sales-section h3 {
+      font-size: 1rem;
+    }
+    .sales-table th, .sales-table td {
+      padding: 8px 4px;
+      font-size: 0.95em;
+    }
+  }
+</style>
+<div class="sales-container">
+  <div class="admin-actions">
+    <a href="{% url 'admin_dashboard' %}" class="btn dashboard">← Admin Dashboard</a>
+  </div>
+  <h2 class="sales-title">📊 Sales Overview</h2>
+
+  <!-- Daily Sales -->
+  <section class="sales-section">
+    <h3>🗓 Today’s Sales (Total: ৳{{ daily_total }})</h3>
+    {% if daily_sales %}
+      <table class="sales-table">
+        <tr>
+          <th>Product</th>
+          <th>Quantity</th>
+          <th>Total Sales</th>
+          <th>Percentage</th>
+        </tr>
+        {% for s in daily_sales %}
+        <tr>
+          <td>{{ s.product__name }}</td>
+          <td>{{ s.total_qty }}</td>
+          <td>৳{{ s.total_sales }}</td>
+          <td>{{ s.percentage|floatformat:2 }}%</td>
+        </tr>
+        {% endfor %}
+      </table>
+    {% else %}
+      <p>No sales today.</p>
+    {% endif %}
+  </section>
+
+  <!-- Weekly Sales -->
+  <section class="sales-section">
+    <h3>📅 This Week’s Sales (Total: ৳{{ weekly_total }})</h3>
+    {% if weekly_sales %}
+      <table class="sales-table">
+        <tr>
+          <th>Product</th>
+          <th>Quantity</th>
+          <th>Total Sales</th>
+          <th>Percentage</th>
+        </tr>
+        {% for s in weekly_sales %}
+        <tr>
+          <td>{{ s.product__name }}</td>
+          <td>{{ s.total_qty }}</td>
+          <td>৳{{ s.total_sales }}</td>
+          <td>{{ s.percentage|floatformat:2 }}%</td>
+        </tr>
+        {% endfor %}
+      </table>
+    {% else %}
+      <p>No sales this week.</p>
+    {% endif %}
+  </section>
+
+  <!-- Monthly Sales -->
+  <section class="sales-section">
+    <h3>📆 This Month’s Sales (Total: ৳{{ monthly_total }})</h3>
+    {% if monthly_sales %}
+      <table class="sales-table">
+        <tr>
+          <th>Product</th>
+          <th>Quantity</th>
+          <th>Total Sales</th>
+          <th>Percentage</th>
+        </tr>
+        {% for s in monthly_sales %}
+        <tr>
+          <td>{{ s.product__name }}</td>
+          <td>{{ s.total_qty }}</td>
+          <td>৳{{ s.total_sales }}</td>
+          <td>{{ s.percentage|floatformat:2 }}%</td>
+        </tr>
+        {% endfor %}
+      </table>
+    {% else %}
+      <p>No sales this month.</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}
