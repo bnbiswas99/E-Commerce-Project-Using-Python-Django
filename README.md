@@ -1,6 +1,3 @@
-Here’s a **refined, beautifully structured, and more decorative** version of your Django e-commerce project README. It’s professional, clean, and GitHub-friendly:
-
----
 
 # 🛒 E-Commerce Web Application (Django 5.2)
 
